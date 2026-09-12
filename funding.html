@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Funding Desk | ApexForex Portal</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { background-color: #06080c; color: #d1d5db; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <header class="bg-gray-900 border-b border-gray-800 h-12 px-6 flex justify-between items-center text-xs">
+        <span class="font-black text-emerald-500 tracking-wider text-sm">APEX<span class="text-white font-light">CASH DESK</span></span>
+        <a href="terminal.html" class="bg-emerald-950 text-emerald-400 border border-emerald-900 px-3 py-1 rounded hover:bg-emerald-600 hover:text-white font-bold">← Back to Trading Workspace</a>
+    </header>
+
+    <main class="max-w-md w-full mx-auto p-6 flex-1 my-12 bg-gray-950 border border-gray-800 rounded-xl shadow-2xl h-fit">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-gray-900 pb-2">💵 Adjust Liquidity Allocation</h2>
+        
+        <div class="mb-6 bg-black p-4 rounded border border-gray-900">
+            <p class="text-[10px] text-gray-500 uppercase">Current Account Fluidity</p>
+            <p id="funding-current-bal" class="text-xl font-black text-emerald-400">$0.00 USD</p>
+        </div>
+
+        <form onsubmit="processTransaction(event)" class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Transaction Routing</label>
+                <select id="tx-type" class="w-full bg-black border border-gray-800 rounded p-2.5 text-xs text-white focus:outline-none">
+                    <option value="CREDIT">Simulated Direct Ledger Deposit</option>
+                    <option value="DEBIT">Simulated Direct Ledger Withdrawal</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Amount ($ USD)</label>
+                <input type="number" id="tx-amount" min="1" step="1" required placeholder="5000" class="w-full bg-black border border-gray-800 rounded p-2.5 text-xs text-white focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded text-xs uppercase font-mono tracking-wider transition">
+                Authorize Transaction Order
+            </button>
+        </form>
+    </main>
+
+    <script>
+        const activeUserToken = localStorage.getItem('apex_active_session');
+        if (!activeUserToken) window.location.href = 'login.html';
+
+        let userDB = JSON.parse(localStorage.getItem('apex_users_db')) || {};
+        let userProfile = userDB[activeUserToken];
+
+        function updateBalanceUI() {
+            document.getElementById('funding-current-bal').innerText = `$${userProfile.balance.toLocaleString('en-US', {minimumFractionDigits: 2})} USD`;
+        }
+
+        function processTransaction(e) {
+            e.preventDefault();
+            const type = document.getElementById('tx-type').value;
+            const amt = parseFloat(document.getElementById('tx-amount').value);
+
+            if (type === 'DEBIT' && userProfile.balance < amt) {
+                alert("Insufficient clearing capital to process extraction order."); return;
+            }
+
+            userProfile.balance = type === 'CREDIT' ? userProfile.balance + amt : userProfile.balance - amt;
+            userDB[activeUserToken] = userProfile;
+            localStorage.setItem('apex_users_db', JSON.stringify(userDB));
+            
+            document.getElementById('tx-amount').value = '';
+            updateBalanceUI();
+        }
+        updateBalanceUI();
+    </script>
+</body>
+</html>
