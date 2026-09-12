@@ -1,0 +1,84 @@
+
+### ⚙️ 3. The Account Modification Panel (`settings.html`)
+Save this file as **`settings.html`**. It manages changes to security keys, active passwords, and custom execution options.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings Desk | ApexForex Portal</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { background-color: #06080c; color: #d1d5db; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <header class="bg-gray-900 border-b border-gray-800 h-12 px-6 flex justify-between items-center text-xs">
+        <span class="font-black text-blue-500 tracking-wider text-sm">APEX<span class="text-white font-light">FX-5 CONTROL</span></span>
+        <a href="terminal.html" class="bg-blue-950 text-blue-400 border border-blue-900 px-3 py-1 rounded hover:bg-blue-600 hover:text-white font-bold">← Back to Trading Workspace</a>
+    </header>
+
+    <main class="max-w-3xl w-full mx-auto p-6 flex-1 my-6 space-y-6">
+        <div id="settings-banner" class="hidden text-xs p-3 rounded font-mono border"></div>
+
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-6">
+            <h2 class="text-sm font-bold text-white uppercase mb-4 border-b border-gray-900 pb-2">📊 Leverage Matrix Control</h2>
+            <select id="setting-leverage" class="w-full bg-black border border-gray-800 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="1:30">1:30 (Standard Retail Cap)</option>
+                <option value="1:50">1:50 (Standard US Major Cap)</option>
+                <option value="1:100">1:100 (Institutional Access Mode)</option>
+            </select>
+        </div>
+
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-6">
+            <h2 class="text-sm font-bold text-white uppercase mb-4 border-b border-gray-900 pb-2">🔒 Update Secure Password</h2>
+            <form onsubmit="handlePasswordUpdate(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input type="password" id="new-password" required placeholder="New Password" class="bg-black border border-gray-800 rounded px-3 py-2 text-xs text-white focus:outline-none">
+                    <input type="password" id="confirm-password" required placeholder="Confirm New Password" class="bg-black border border-gray-800 rounded px-3 py-2 text-xs text-white focus:outline-none">
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded text-[11px] uppercase transition">Save Password</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const activeUserToken = localStorage.getItem('apex_active_session');
+        if (!activeUserToken) window.location.href = 'login.html';
+
+        let userDB = JSON.parse(localStorage.getItem('apex_users_db')) || {};
+        let userProfile = userDB[activeUserToken];
+
+        if(userProfile.leverage) document.getElementById('setting-leverage').value = userProfile.leverage;
+
+        document.getElementById('setting-leverage').addEventListener('change', (e) => {
+            userProfile.leverage = e.target.value;
+            userDB[activeUserToken] = userProfile;
+            localStorage.setItem('apex_users_db', JSON.stringify(userDB));
+            showBanner("✅ Leverage configuration properties adjusted successfully.", "success");
+        });
+
+        function handlePasswordUpdate(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('new-password').value;
+            const confPass = document.getElementById('confirm-password').value;
+            if (newPass !== confPass) { showBanner("❌ Match failure on password inputs.", "error"); return; }
+            userProfile.password = newPass;
+            userDB[activeUserToken] = userProfile;
+            localStorage.setItem('apex_users_db', JSON.stringify(userDB));
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            showBanner("✅ Vault password access parameters updated.", "success");
+        }
+
+        function showBanner(msg, type) {
+            const b = document.getElementById('settings-banner'); b.innerText = msg;
+            b.className = type === "success" ? "text-center text-green-400 bg-green-950 border-green-900 text-xs p-3 rounded mb-4 font-mono" : "text-center text-red-400 bg-red-950 border-red-900 text-xs p-3 rounded mb-4 font-mono";
+            setTimeout(() => { b.className = "hidden"; }, 3000);
+        }
+    </script>
+</body>
+</html>
